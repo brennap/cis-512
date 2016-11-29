@@ -77,6 +77,11 @@ qplot(data=subset(GDPbyInd_US, Industry %in% c(IT_niacs, top_growth)),
 qplot(data=subset(GDPbyInd_VT, Industry %in% c(IT_niacs, top_growth)),
       x=Year, y=GDP..Millions.Chained.2009., colour=Industry) + geom_smooth(method=lm)
 
+# Summary of linear models
+for (IND in c(IT_niacs, top_growth)){print(IND); print(
+  summary(lm(GDP..Billions.Chained.2009. ~ Year, data=subset(GDPbyInd_US, Industry == IND)))
+)}
+
 # A look at Value added by Industry
 VADDbyInd_US <- read.csv("data/RealValueAddedbyIndustry_US.csv")
 
