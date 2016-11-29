@@ -46,9 +46,13 @@ for tbl in get_json['BEAAPI']['Results']['ParamValue']:
 
 get = requests.get(bea_uri + '?&UserID=' + bea_key + '&method=GetParameterValues&DatasetName=GDPbyIndustry&ParameterName=Industry&')
 get_json = json.loads(get.text.replace('\n',''))
-scode = {}
+#scode = {}
+csv = open("data/NIACS.csv", "w")
+csv.write('Industry,Industry Description\n')
 for tbl in get_json['BEAAPI']['Results']['ParamValue']:
-    scode[tbl['Key']] = tbl['Desc']
+    csv.write(",".join((tbl['Key'], '"'+tbl['Desc']+'"'))+'\n')
+csv.close()
+#    scode[tbl['Key']] = tbl['Desc']
 
 # Write our CSVs on National stats
 csv = open("data/RealValueAddedbyIndustry_US.csv", "w")
@@ -105,7 +109,7 @@ for IND in SAN_IND.keys():
     get_json = json.loads(get.text.replace('\n',''))
     for data in get_json['BEAAPI']['Results']['Data']:
         if 'DataValue' in data.keys():
-             csv.write(",".join((IND, '"'+SAN_IND[IND]+'"', data['TimePeriod'], data['DataValue']))+'\n')
+             csv.write(",".join((IND, '"'+SAN_IND[IND].replace(' [State Annual NAICS]','')+'"', data['TimePeriod'], data['DataValue']))+'\n')
 csv.close()
 
 # Build List of Counties (and associated codes) in VT
