@@ -50,7 +50,8 @@ get_json = json.loads(get.text.replace('\n',''))
 csv = open("data/NIACS.csv", "w")
 csv.write('Industry,Industry Description\n')
 for tbl in get_json['BEAAPI']['Results']['ParamValue']:
-    csv.write(",".join((tbl['Key'], '"'+tbl['Desc']+'"'))+'\n')
+    csv.write(",".join((tbl['Key'], '"'+tbl['Desc'][0:tbl['Desc'].find('(')-1]+'"'))+'\n')
+
 csv.close()
 #    scode[tbl['Key']] = tbl['Desc']
 
