@@ -182,7 +182,7 @@ png("plots/vt_pop.png")
 qplot(data=RegionalIncome_VT, x=Year, y=Population, colour=Location, main="Population Change in VT") + geom_smooth(method=lm)
 dev.off()
 
-png("plots/vt_income.pmg")
+png("plots/vt_income.png")
 qplot(data=RegionalIncome_VT, x=Year, y=Total.Personal.Income..Thousands., 
       colour=Location, main="Total Income in VT") + geom_smooth(method=lm)
 dev.off()
