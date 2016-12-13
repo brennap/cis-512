@@ -88,7 +88,7 @@ dotchart(sapply(VT_GDP_models["coefficients",],
                 function(var){return(var)})[2,grep("^[0-9]{3,}[A-Z]*$", colnames(VT_GDP_models))],
          main="Regression slopes of Small sectors - VT")
 dev.off()
-png("plots/trend-slope_st_sector_gdp(2).png")
+png("plots/trend-slope_st_sector_gdp(3).png")
 dotchart(sapply(VT_GDP_models["coefficients",], 
                 function(var){return(var)})[2,grep("^[A-Z]*$", colnames(VT_GDP_models))],
          main="Regression slopes of Other sectors - VT")
@@ -117,15 +117,21 @@ growth_table <- merge(subset(NIACS, Industry %in% top_growth),
                             by="Industry"),
                       by="Industry")
 
+growth_table <- rbind(growth_table,
+                      cbind(Industry=IT_niacs,
+                          Industry.Description=levels(factor(NIACS$Industry.Description[NIACS$Industry == IT_niacs])),
+                            VT_Growth=VT_GDP_models["coefficients",IT_niacs][[1]]["Year"],
+                            US_Growth=US_GDP_models["coefficients",IT_niacs][[1]]["Year"]),
+                      make.row.names=FALSE)
 
-png("plots/trend-us_candidate_sectors.png")
+png("plots/trend-us_candidate_sectors.png", height=4, width=6, units="in", res=96)
 qplot(data=subset(GDPbyInd_US, Industry %in% c(IT_niacs, top_growth)),
       x=Year, y=GDP..Billions.Chained.2009., colour=Industry) + geom_smooth(method=lm) +
   ggtitle(expression(atop("Portion of US GDP",
                           atop(italic("Candidate Industries"), "")))) 
 dev.off()
 
-png("plots/trend-st_candidate_sectors.png")
+png("plots/trend-st_candidate_sectors.png", height=4, width=6, units="in", res=96)
 qplot(data=subset(GDPbyInd_VT, Industry %in% c(IT_niacs, top_growth)),
       x=Year, y=GDP..Millions.Chained.2009., colour=Industry) + geom_smooth(method=lm) +
   ggtitle(expression(atop("Portion of VT GDP",
@@ -168,7 +174,7 @@ write.table(paired_sector, Report)
 
 # A look at Value added by Industry
 VADDbyInd_US <- read.csv("data/RealValueAddedbyIndustry_US.csv")
-png("plots/trend-slope_us_sector_value_add.png")
+png("plots/trend-slope_us_sector_value_add.png", height=4, width=6, units="in", res=96)
 qplot(data=subset(VADDbyInd_US, Industry %in% c(IT_niacs, top_growth)),
       x=Year, y=Value.Added..Billions.Chained.2009., colour=Industry,
       main="Value Added by Candidate Sector - US") + geom_smooth(method=lm)
@@ -178,16 +184,16 @@ dev.off()
 RegionalIncome_VT <- read.csv("data/RegionalIncome_VT.csv")
 # qplot(data=RegionalIncome_VT, x=Total.Personal.Income..Thousands., y=Population, colour=Location)
 
-png("plots/vt_pop.png")
+png("plots/vt_pop.png", height=4, width=6, units="in", res=96)
 qplot(data=RegionalIncome_VT, x=Year, y=Population, colour=Location, main="Population Change in VT") + geom_smooth(method=lm)
 dev.off()
 
-png("plots/vt_income.png")
+png("plots/vt_income.png", height=4, width=6, units="in", res=96)
 qplot(data=RegionalIncome_VT, x=Year, y=Total.Personal.Income..Thousands., 
       colour=Location, main="Total Income in VT") + geom_smooth(method=lm)
 dev.off()
 
-png("plots/vt_income_pp.png")
+png("plots/vt_income_pp.png", height=4, width=6, units="in", res=96)
 qplot(data=RegionalIncome_VT, x=Year, y=Total.Personal.Income..Thousands./Population, 
       colour=Location, main="Income per Person in VT") + geom_smooth(method=lm)
 dev.off()
@@ -200,23 +206,25 @@ png("plots/trend-slope_vt_pop.png")
 dotchart(sapply(VT_Income_models["coefficients",], function(var){return(var)})[2,], main="Slope of Population Models - VT")
 dev.off()
 
-# Population change
-VT_pop <- sapply(levels(RegionalIncome_VT$Location), function(LOC){
-  RegionalIncome_VT$Population[RegionalIncome_VT$Location == LOC & RegionalIncome_VT$Year == "2015"] -
-    RegionalIncome_VT$Population[RegionalIncome_VT$Location == LOC & RegionalIncome_VT$Year == "2006"]
-  })
-
-# Population change by percent
-
-VT_pop_per <- sapply(levels(RegionalIncome_VT$Location), function(LOC){
-  RegionalIncome_VT$Population[RegionalIncome_VT$Location == LOC & RegionalIncome_VT$Year == "2015"] /
-    RegionalIncome_VT$Population[RegionalIncome_VT$Location == LOC & RegionalIncome_VT$Year == "2006"]
-})
-
-VT_pop_table <- merge(cbind(Region=names(VT_pop), "Population Change"=VT_pop),
-      cbind(Region=names(VT_pop_per), "Percent Change"=VT_pop_per),
-      by="Region"
+VT_pop_table <- merge(
+  RegionalIncome_VT[RegionalIncome_VT$Year == "2006", c("Location", "Population")],
+  RegionalIncome_VT[RegionalIncome_VT$Year == "2015", c("Location", "Population")],
+  by="Location", suffixes=c("2006","2015")
 )
+VT_pop_table$Difference <- VT_pop_table$Population2015 - VT_pop_table$Population2006
+VT_pop_table$Percent_Difference <- 1 - (VT_pop_table$Population2006 / VT_pop_table$Population2015)
+
+#VT_inc_table <- merge(
+#  RegionalIncome_VT[RegionalIncome_VT$Year == "2006", c("Location", "Total.Personal.Income..Thousands.")],
+#  RegionalIncome_VT[RegionalIncome_VT$Year == "2015", c("Location", "Total.Personal.Income..Thousands.")],
+#  by="Location", suffixes=c("2006","2015")
+#)
+#VT_inc_table$Difference <- VT_inc_table$Total.Personal.Income..Thousands.2015 - VT_inc_table$Total.Personal.Income..Thousands.2006
+#VT_inc_table$Percent_Difference <- 1 - (VT_inc_table$Total.Personal.Income..Thousands.2006 / VT_inc_table$Total.Personal.Income..Thousands.2015)
+
+
 writeLines("\n\nPopulation Change in Vermont, 2006-2015\n", Report)
 write.table(VT_pop_table, Report)
+
+
 close(Report)
